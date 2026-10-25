@@ -31,3 +31,11 @@ jobs:
           git add toffee_playlist.json toffee_playlist.m3u
           git commit -m "Auto Update Toffee Playlist [skip ci]" || exit 0
           git push
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add toffee_playlist.json toffee_playlist.m3u
+          git commit -m "Auto Update Toffee Playlist [skip ci]" || exit 0
+          git pull --rebase origin main
+          git push origin main
