@@ -5,7 +5,7 @@ import urllib.request
 import urllib.error
 
 # ============================================================
-# কনফিগারেশন - Shamim IPTV
+# কনফিগারেশন - Shamim IPTV (১০০% স্বাধীন সংস্করণ)
 # ============================================================
 PLAYLIST_NAME = "Shamim IPTV - Toffee Live"
 OWNER_NAME = "Shamim IPTV"
@@ -14,26 +14,21 @@ TELEGRAM_URL = "https://t.me/shamim_iptv"
 JSON_FILE = "toffee_playlist.json"
 M3U_FILE = "toffee_playlist.m3u"
 
-# বিকল্প ব্যাকআপ মিরর (যদি Toffee সার্ভার সরাসরি কোনো কারণে রেসপন্স না করে)
-FALLBACK_MIRRORS = [
-    "https://raw.githubusercontent.com/srhady/toffee-bd/main/toffee_playlist.json",
-    "https://raw.githubusercontent.com/Jeshan-akand/Toffee-Channels-Link-Headers/main/toffee_channel_data.json"
-]
-
 def get_token_directly_from_toffee():
     """
-    Toffee-র অফিশিয়াল সার্ভার থেকে সরাসরি ফ্রেশ edge-cache-token সংগ্রহ করার ফাংশন
+    সরাসরি Toffee-র অফিশিয়াল সার্ভার থেকে লাইভ edge-cache-token সংগ্রহ করার ফাংশন
+    (অন্য কোনো তৃতীয় পক্ষ বা কারো রিপোজিটরির সাহায্য ছাড়াই)
     """
-    print("[*] Attempting direct token extraction from Toffee servers...")
+    print("[*] Connecting directly to Toffee official server...")
     try:
-        # ধাপ ১: Toffee হোমপেজে ভিজিট করে device_token এবং কুকি সংগ্রহ
+        # ধাপ ১: Toffee ওয়েবসাইট থেকে গেস্ট ডিভাইস কুকি সংগ্রহ
         home_url = "https://toffeelive.com"
         req = urllib.request.Request(home_url, headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
         })
         
-        with urllib.request.urlopen(req, timeout=12) as res:
+        with urllib.request.urlopen(req, timeout=15) as res:
             headers = res.info()
             raw_cookies = headers.get_all('Set-Cookie') or []
         
@@ -49,7 +44,7 @@ def get_token_directly_from_toffee():
             print("[-] Direct extraction: device_token not found in initial cookies.")
             return None
 
-        # ধাপ ২: Toffee Playback API কল করা (Somoy TV চ্যানেল আইডি ব্যবহার করে)
+        # ধাপ ২: Toffee Playback API থেকে লাইভ স্ট্রিমিং টোকেন নেওয়া
         playback_url = "https://entitlement-prod.services.toffeelive.com/toffee/BD/DK/web/playback/Xi_Ga5oBNnOkwJLWkhKP"
         cookie_header = "; ".join(cookie_parts)
         
@@ -62,41 +57,18 @@ def get_token_directly_from_toffee():
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         })
         
-        with urllib.request.urlopen(post_req, timeout=12) as pb_res:
+        with urllib.request.urlopen(post_req, timeout=15) as pb_res:
             pb_data = json.loads(pb_res.read().decode('utf-8'))
-            
-            # স্ট্রিম ইউআরএল থেকে edge-cache-token আলাদা করা
             stream_url = pb_data.get("playbackDetails", {}).get("data", [{}])[0].get("url", "")
+            
             if "edge-cache-token=" in stream_url:
                 token = stream_url.split("edge-cache-token=")[1]
-                print(f"[✓] SUCCESS! Token directly generated from Toffee server: {token[:35]}...")
+                print(f"[✓] SUCCESS! Token generated directly from Toffee official server!")
                 return token
 
     except Exception as e:
-        print(f"[-] Direct Toffee extraction error: {e}")
+        print(f"[-] Direct extraction error: {e}")
     
-    return None
-
-def fetch_token_from_mirrors():
-    """
-    বিকল্প মিরর থেকে টোকেন সংগ্রহকারী ফাংশন (ফলব্যাক)
-    """
-    print("[*] Trying fallback mirrors...")
-    for url in FALLBACK_MIRRORS:
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=8) as response:
-                data = json.loads(response.read().decode('utf-8'))
-                channels = data.get("channels", [])
-                for ch in channels:
-                    url_val = ch.get("stream_url") or ch.get("link") or ""
-                    if "edge-cache-token=" in url_val:
-                        token = url_val.split("edge-cache-token=")[1]
-                        if len(token) > 20:
-                            print(f"[✓] Retrieved token from fallback mirror: {url}")
-                            return token
-        except Exception as e:
-            print(f"[-] Mirror failed: {url}")
     return None
 
 def update_playlist():
@@ -107,17 +79,13 @@ def update_playlist():
     with open(JSON_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # ১. প্রথমে সরাসরি Toffee সার্ভার থেকে টোকেন নেওয়ার চেষ্টা
+    # সরাসরি Toffee সার্ভার থেকে টোকেন সংগ্রহ
     token = get_token_directly_from_toffee()
-    
-    # ২. যদি কোনো কারণে ফেইল করে, তাহলে বিকল্প মিরর ব্যবহার করা
-    if not token:
-        token = fetch_token_from_mirrors()
 
     if not token:
-        print("[!] Warning: All token sources failed. Keeping current tokens.")
+        print("[!] Warning: Could not generate new token directly. Keeping existing token.")
     else:
-        print(f"[+] Applying token to all active channels...")
+        print(f"[+] Applying fresh token to all 75 channels...")
 
     now_str = datetime.now().strftime("%I:%M:%S %p %d-%m-%Y")
 
