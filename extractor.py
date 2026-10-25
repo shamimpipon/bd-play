@@ -123,7 +123,7 @@ def update_playlist():
         logo = ch.get("logo_url", "")
         category = ch.get("category", "General")
 
-        m3u_lines.append(f'#EXTINF:-1 tvg-id="{ch_id}" tvg-logo="{logo}" group-title="{category}",{ch_name}')
+        m3u_lines.append(f'#EXTINF:-1 tvg-id="{ch_id}" tvg-name="{ch_name}" tvg-logo="{logo}" group-title="{category}",{ch_name}')
         m3u_lines.append(updated_stream_url)
         m3u_lines.append("")
         active_count += 1
