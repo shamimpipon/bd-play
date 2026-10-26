@@ -11,8 +11,8 @@ PLAYLIST_NAME = "Shamim IPTV - Toffee Live"
 OWNER_NAME = "Shamim IPTV"
 TELEGRAM_URL = "https://t.me/shamim_iptv"
 
-JSON_FILE = "toffee_playlist.json"
-M3U_FILE = "toffee_playlist.m3u"
+JSON_FILE = "bd_playlist.json"
+M3U_FILE = "bd_playlist.m3u"
 
 def get_token_directly_from_toffee():
     """
