@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import urllib.request
 import urllib.error
 
@@ -87,7 +87,9 @@ def update_playlist():
     else:
         print(f"[+] Applying fresh token to all 75 channels...")
 
-    now_str = datetime.now().strftime("%I:%M:%S %p %d-%m-%Y")
+    # বাংলাদেশ সময় (UTC + 6 ঘণ্টা)
+    bd_time = datetime.now(timezone(timedelta(hours=6)))
+    now_str = bd_time.strftime("%I:%M:%S %p %d-%m-%Y")
 
     data["playlist_info"] = {
         "name": PLAYLIST_NAME,
