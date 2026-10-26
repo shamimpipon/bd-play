@@ -1,5 +1,5 @@
 
-name: Toffee Playlist Auto Updater
+name: bd Playlist Auto Updater
 
 on:
   schedule:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: toffee-playlist-updater
+  group: bd-playlist-updater
   cancel-in-progress: false
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add toffee_playlist.json toffee_playlist.m3u
+          git add bd_playlist.json bd_playlist.m3u
 
           if git diff --cached --quiet; then
             echo "No playlist changes to commit."
